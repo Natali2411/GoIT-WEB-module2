@@ -1,5 +1,6 @@
 import re
-from bot_helper.field import Field
+from field import Field
+
 
 class Email(Field):
     """
@@ -21,15 +22,17 @@ class Email(Field):
     @value.setter
     def value(self, email: str) -> None:
         match = re.search(r"[A-Za-z]+[\w\.]+@\w+\.[a-zA-Z]{1,}[^\.-]", email)
-        email_address = match.group() if match else "" 
+        email_address = match.group() if match else ""
         if len(email) != len(email_address):
-            raise ValueError("The address must contain exactly one @ symbol."\
-                            "The address must include the characters A-Za-z0-9 before "
-                             "and after the @ symbol. The local name can contain the "
-                             "characters a-zA-z0-9 and the characters: "
-                             "! #$%&'r; + - . = ? ^^ _ ` { } ½ ~. The following "
-                             "characters cannot be used: < > ( ) [ ] @ , ; : \ /  * or "
-                             "space. The domain name must contain two text lines "
-                             "separated by a dot. The last character cannot be a minus"
-                             " sign, a hyphen, or a dot.")
+            raise ValueError(
+                "The address must contain exactly one @ symbol."
+                "The address must include the characters A-Za-z0-9 before "
+                "and after the @ symbol. The local name can contain the "
+                "characters a-zA-z0-9 and the characters: "
+                "! #$%&'r; + - . = ? ^^ _ ` { } ½ ~. The following "
+                "characters cannot be used: < > ( ) [ ] @ , ; : \ /  * or "
+                "space. The domain name must contain two text lines "
+                "separated by a dot. The last character cannot be a minus"
+                " sign, a hyphen, or a dot."
+            )
         self.__value = email

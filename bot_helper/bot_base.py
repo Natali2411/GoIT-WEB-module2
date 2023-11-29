@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, List
 
-from bot_helper.save_data.save_base import SaveBase
+from save_data.save_base import SaveBase
 
 
 class BotBase(ABC):
@@ -11,7 +11,6 @@ class BotBase(ABC):
 
     def __init__(self, data_save_tool: SaveBase):
         self.data_save_tool = data_save_tool
-
 
     @staticmethod
     @abstractmethod

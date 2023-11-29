@@ -5,8 +5,8 @@ import json
 from collections import UserDict
 from typing import Generator
 
-from bot_helper.save_data.save_base import SaveBase
-from bot_helper.record import Record, RecordAlreadyExistsException
+from save_data.save_base import SaveBase
+from record import Record, RecordAlreadyExistsException
 
 
 class AddressBook(UserDict):
@@ -18,7 +18,9 @@ class AddressBook(UserDict):
     def __init__(self, data_save_tool: SaveBase):
         super().__init__()
         self.data_save_tool = data_save_tool
-        self.data.update(self.data_save_tool.read_info(path=self.data_save_tool.address))
+        self.data.update(
+            self.data_save_tool.read_info(path=self.data_save_tool.address)
+        )
 
     def iterator(self, record_num: int = None) -> Generator:
         """
@@ -28,7 +30,8 @@ class AddressBook(UserDict):
         :return: Generator.
         """
         address_book: dict = self.data_save_tool.read_info(
-            path=self.data_save_tool.address)
+            path=self.data_save_tool.address
+        )
         book_items = list(address_book.items())
         if not record_num:
             step = 1
@@ -47,17 +50,21 @@ class AddressBook(UserDict):
         her/his phone numbers.
         """
         address_book: dict = self.data_save_tool.read_info(
-            path=self.data_save_tool.address)
+            path=self.data_save_tool.address
+        )
         if record.name.value not in address_book:
             self.data[record.name.value] = record
             record_data = repr(record)
             address_book.update(json.loads(record_data))
-            self.data_save_tool.save_info(path=self.data_save_tool.address,
-                                          data=address_book)
+            self.data_save_tool.save_info(
+                path=self.data_save_tool.address, data=address_book
+            )
         else:
-            raise RecordAlreadyExistsException(f"Record with the name '"
-                                               f"{record.name.value}' already exists "
-                                               f"in the address book dictionary")
+            raise RecordAlreadyExistsException(
+                f"Record with the name '"
+                f"{record.name.value}' already exists "
+                f"in the address book dictionary"
+            )
 
     def update_record(self, record: Record) -> None:
         """
@@ -66,15 +73,21 @@ class AddressBook(UserDict):
         :return: None.
         """
         address_book: dict = self.data_save_tool.read_info(
-            path=self.data_save_tool.address)
+            path=self.data_save_tool.address
+        )
         found_record = address_book.get(record.name.value)
         if found_record:
-            address_book[record.name.value] = json.loads(repr(record))[record.name.value]
-            self.data_save_tool.save_info(path=self.data_save_tool.address,
-                                          data=address_book)
+            address_book[record.name.value] = json.loads(repr(record))[
+                record.name.value
+            ]
+            self.data_save_tool.save_info(
+                path=self.data_save_tool.address, data=address_book
+            )
         else:
-            raise ValueError(f"The contact with the name '{record.name.value}' has not"
-                             f" been found in the Address Book")
+            raise ValueError(
+                f"The contact with the name '{record.name.value}' has not"
+                f" been found in the Address Book"
+            )
 
     def find(self, name: str) -> Record:
         """
@@ -83,15 +96,16 @@ class AddressBook(UserDict):
         :return: Record from the address book for specific client.
         """
         record: dict = self.data_save_tool.read_info(
-            path=self.data_save_tool.address).get(name)
+            path=self.data_save_tool.address
+        ).get(name)
         if record:
             record_obj = Record(name=name, birthday=record.get("birthday"))
             for phone in record["phones"]:
                 record_obj.add_phone(phone_num=phone)
 
-            address = record["address"]    
+            address = record["address"]
             if address:
-                record_obj.add_address(address)  
+                record_obj.add_address(address)
 
             for email in record["emails"]:
                 record_obj.add_email(email)
@@ -100,32 +114,41 @@ class AddressBook(UserDict):
 
     def search_contact(self, search_phrase: str) -> Generator:
         """
-        The method looks up contact information by name, phone number, birthday, 
+        The method looks up contact information by name, phone number, birthday,
         email address, or address using approximate equality.
         :param search_phrase: The phrase which is used for the searching contacts in the
         Address Book.
         """
         address_book: dict = self.data_save_tool.read_info(
-            path=self.data_save_tool.address)
+            path=self.data_save_tool.address
+        )
         for contact_name, contact_info in address_book.items():
-            found_phones = list(filter(lambda phone: search_phrase in phone,
-                                       contact_info["phones"]))
-            found_emails = list(filter(lambda email: search_phrase in email,
-                                       contact_info["emails"]))
-            found_address = [address for address in contact_info["address"].values() if address]
-            found_address = list(filter(lambda address: search_phrase in address,
-                                        found_address))
-            found_birthday = search_phrase in contact_info.get("birthday") if \
-                contact_info.get("birthday") else False
+            found_phones = list(
+                filter(lambda phone: search_phrase in phone, contact_info["phones"])
+            )
+            found_emails = list(
+                filter(lambda email: search_phrase in email, contact_info["emails"])
+            )
+            found_address = [
+                address for address in contact_info["address"].values() if address
+            ]
+            found_address = list(
+                filter(lambda address: search_phrase in address, found_address)
+            )
+            found_birthday = (
+                search_phrase in contact_info.get("birthday")
+                if contact_info.get("birthday")
+                else False
+            )
             if any(
                 [
                     search_phrase.lower() in contact_name.lower(),
                     found_phones,
                     found_birthday,
                     found_emails,
-                    found_address
-                    ]
-                    ):
+                    found_address,
+                ]
+            ):
                 yield {"name": contact_name, "info": contact_info}
 
     def delete(self, name: str) -> None:
@@ -136,17 +159,20 @@ class AddressBook(UserDict):
         :return: None.
         """
         address_book: dict = self.data_save_tool.read_info(
-            path=self.data_save_tool.address)
+            path=self.data_save_tool.address
+        )
         record: dict = address_book.get(name)
         if record:
             self.data.pop(name)
             address_book.pop(name)
-            self.data_save_tool.save_info(path=self.data_save_tool.address,
-                                          data=address_book)
+            self.data_save_tool.save_info(
+                path=self.data_save_tool.address, data=address_book
+            )
         else:
-            raise ValueError(f"Contact with the name '{name}' doesn't exist in the "
-                             f"Address Book")
-          
+            raise ValueError(
+                f"Contact with the name '{name}' doesn't exist in the " f"Address Book"
+            )
+
     def get_contacts_upcoming_birthdays(self, days_threshold: int) -> Generator:
         """
         Method returns a generator of contacts whose birthdays are within a specified
@@ -158,7 +184,9 @@ class AddressBook(UserDict):
             raise ValueError("days_threshold should be a non-negative integer.")
 
         current_date = datetime.now()
-        address_book: dict = self.data_save_tool.read_info(path=self.data_save_tool.address)
+        address_book: dict = self.data_save_tool.read_info(
+            path=self.data_save_tool.address
+        )
 
         for contact_name, contact_info in address_book.items():
             record = self.find(contact_name)
@@ -167,4 +195,8 @@ class AddressBook(UserDict):
                 days_to_birthday = (birthday_date - current_date.date()).days
 
                 if 0 <= days_to_birthday <= days_threshold:
-                    yield {"name": contact_name, "info": contact_info, "days_to_birthday": days_to_birthday}
+                    yield {
+                        "name": contact_name,
+                        "info": contact_info,
+                        "days_to_birthday": days_to_birthday,
+                    }

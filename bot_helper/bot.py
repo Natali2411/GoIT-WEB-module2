@@ -1,24 +1,23 @@
 from typing import Tuple, List
 
-from bot_helper.address import Address, ADDRESS_KEY_LIST
+from address import Address, ADDRESS_KEY_LIST
 from prompt_toolkit import prompt
 
-from bot_helper.address_book import AddressBook
-from bot_helper.birthday import Birthday
-from bot_helper.bot_base import BotBase
-from bot_helper.record import RecordAlreadyExistsException, Record
-from bot_helper.save_data.save_base import SaveBase
-from bot_helper.save_data.save_on_disk import SaveAddressBookOnDisk
-from bot_helper.utils.command_prompts import get_nested_completer
-from bot_helper.utils.format_str import FormatStr
+from address_book import AddressBook
+from birthday import Birthday
+from bot_base import BotBase
+from record import RecordAlreadyExistsException, Record
+from save_data.save_base import SaveBase
+from save_data.save_on_disk import SaveAddressBookOnDisk
+from utils.command_prompts import get_nested_completer
+from utils.format_str import FormatStr
 
 
 class Bot(BotBase):
-
     def __init__(self, data_save_tool: SaveBase):
         super().__init__(data_save_tool)
         self.contacts = AddressBook(data_save_tool=data_save_tool)
-    
+
     @staticmethod
     def input_error(func: callable) -> callable:
         """
@@ -26,7 +25,7 @@ class Bot(BotBase):
         :param func: Function that should be wrapped.
         :return: Wrapped function.
         """
-    
+
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -40,10 +39,9 @@ class Bot(BotBase):
                 return err
             except FileNotFoundError as err:
                 return err
-    
+
         return wrapper
-    
-    
+
     @input_error
     def parse_command(self, _input: str) -> Tuple[str, callable, List[str]]:
         """
@@ -53,10 +51,9 @@ class Bot(BotBase):
         """
         for command_name, func in self.COMMANDS.items():
             if _input.lower().startswith(command_name):
-                return command_name, func, _input[len(command_name):].strip().split()
+                return command_name, func, _input[len(command_name) :].strip().split()
         return "unknown", self.COMMANDS["unknown"], []
-    
-    
+
     @input_error
     def hello(self) -> str:
         """
@@ -64,8 +61,7 @@ class Bot(BotBase):
         :return: Greeting string.
         """
         return "How can I help you?"
-    
-    
+
     @input_error
     def add_contact(self, *args) -> str:
         """
@@ -81,10 +77,11 @@ class Bot(BotBase):
         rec = Record(name=name, birthday=birthday)
         rec.add_phone(phone_num=phone)
         self.contacts.add_record(rec)
-        return f"The contact with name '{name}', '{phone}' and birthday: '{birthday}' has " \
-               f"been successfully added"
-    
-    
+        return (
+            f"The contact with name '{name}', '{phone}' and birthday: '{birthday}' has "
+            f"been successfully added"
+        )
+
     @input_error
     def delete_contact(self, *args) -> str:
         """
@@ -94,10 +91,11 @@ class Bot(BotBase):
         """
         name = args[0]
         self.contacts.delete(name=name)
-        return f"The contact with name '{name}' has been successfully deleted from the " \
-               f"Address Book"
-    
-    
+        return (
+            f"The contact with name '{name}' has been successfully deleted from the "
+            f"Address Book"
+        )
+
     @input_error
     def change_phone(self, *args) -> str:
         """
@@ -112,13 +110,16 @@ class Bot(BotBase):
         if rec:
             rec.edit_phone(old_phone=old_phone, new_phone=new_phone)
             self.contacts.update_record(rec)
-            return f"Phone number for contact '{rec.name.value}' has been successfully " \
-                   f"changed from '{old_phone}' to '{new_phone}'"
+            return (
+                f"Phone number for contact '{rec.name.value}' has been successfully "
+                f"changed from '{old_phone}' to '{new_phone}'"
+            )
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def update_birthday(self, *args) -> str:
         """
@@ -132,17 +133,22 @@ class Bot(BotBase):
         if rec:
             old_birthday = rec.birthday.value
             if rec.birthday.value == Birthday(new_birthday).value:
-                return f"New birthday value for the user '{rec.name.value}' is equal to " \
-                       f"the previous value"
+                return (
+                    f"New birthday value for the user '{rec.name.value}' is equal to "
+                    f"the previous value"
+                )
             rec.add_birthday(birthday=new_birthday)
             self.contacts.update_record(rec)
-            return f"Birthday for contact '{rec.name.value}' has been successfully " \
-                   f"changed from '{old_birthday}' to '{new_birthday}'"
+            return (
+                f"Birthday for contact '{rec.name.value}' has been successfully "
+                f"changed from '{old_birthday}' to '{new_birthday}'"
+            )
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def find_contact_phone(self, *args) -> str:
         """
@@ -154,12 +160,13 @@ class Bot(BotBase):
         rec = self.contacts.find(name)
         if rec:
             phone_nums = [phone_num.value for phone_num in rec.phones]
-            return f"'{rec.name.value}\'s' phone numbers: " + ", ".join(phone_nums)
+            return f"'{rec.name.value}'s' phone numbers: " + ", ".join(phone_nums)
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book."
+            )
+
     @input_error
     def show_all(self, *args) -> str:
         """
@@ -172,8 +179,7 @@ class Bot(BotBase):
             record_num = int(args[0])
         records = self.contacts.iterator(record_num)
         return FormatStr.show_address_book(records)
-    
-    
+
     def search_contact(self, *args) -> str:
         """
         Method that searches the full information about users by name, phone number, birthday,
@@ -189,8 +195,7 @@ class Bot(BotBase):
         for dic in [i for i in records]:
             rec += [(dic["name"], dic["info"])]
         return FormatStr.show_address_book([rec])
-    
-    
+
     @input_error
     def add_phone(self, *args) -> str:
         """
@@ -206,10 +211,11 @@ class Bot(BotBase):
             self.contacts.update_record(rec)
             return f"Phone for contact {rec.name.value} has been added successfully"
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def add_address(self, *args) -> str:
         """
@@ -218,19 +224,22 @@ class Bot(BotBase):
         :return: String with the added address.
         """
         name = args[0]
-        address_str = ' '.join(list(args[1:]))
-        address = address_str.split(', ')
+        address_str = " ".join(list(args[1:]))
+        address = address_str.split(", ")
         rec = self.contacts.find(name)
         if rec:
             rec.add_address(address)
             self.contacts.update_record(rec)
-            return (f"Address: **{', '.join([addr for addr in address if addr])}** for "
-                    f"contact {rec.name.value} has been added successfully")
+            return (
+                f"Address: **{', '.join([addr for addr in address if addr])}** for "
+                f"contact {rec.name.value} has been added successfully"
+            )
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def add_email(self, *args) -> str:
         """
@@ -246,10 +255,11 @@ class Bot(BotBase):
             self.contacts.update_record(rec)
             return f"Email for contact {rec.name.value} has been added successfully"
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def change_email(self, *args) -> str:
         """
@@ -265,12 +275,16 @@ class Bot(BotBase):
         if rec:
             rec.edit_email(old_email=old_email, new_email=new_email)
             self.contacts.update_record(rec)
-            return f"Email for contact '{rec.name.value}' has been successfully " \
-                   f"changed from '{old_email}' to '{new_email}'"
+            return (
+                f"Email for contact '{rec.name.value}' has been successfully "
+                f"changed from '{old_email}' to '{new_email}'"
+            )
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def change_address(self, *args) -> str:
         """
@@ -287,33 +301,41 @@ class Bot(BotBase):
                 "city": rec.address.city,
                 "street": rec.address.street,
                 "house": rec.address.house,
-                "apartment": rec.address.apartment
+                "apartment": rec.address.apartment,
             }
-    
+
             old_address = rec.address
             rec_address = old_address.value.copy()
-    
+
             if rec.address.get_addr_dict() == Address(new_address).get_addr_dict():
-                return f"New address value for the user '{rec.name.value}' is equal to " \
-                       f"the previous value"
+                return (
+                    f"New address value for the user '{rec.name.value}' is equal to "
+                    f"the previous value"
+                )
             if new_address[0] in ADDRESS_KEY_LIST:
                 rec_address[DICT_ADDRESS[new_address[0]]] = new_address[1]
                 rec_address = [addr for addr in rec_address.values()]
                 rec.add_address(rec_address)
                 self.contacts.update_record(rec)
-                return f"{new_address[0].capitalize()} for contact '{rec.name.value}' has " \
-                       f"been successfully changed from " \
-                       f"'{old_address.value[DICT_ADDRESS[new_address[0]]]}' " \
-                       f"to '{new_address[1]}'"
-    
+                return (
+                    f"{new_address[0].capitalize()} for contact '{rec.name.value}' has "
+                    f"been successfully changed from "
+                    f"'{old_address.value[DICT_ADDRESS[new_address[0]]]}' "
+                    f"to '{new_address[1]}'"
+                )
+
             rec.add_address(address=new_address)
             self.contacts.update_record(rec)
-            return f"Address for contact '{rec.name.value}' has been successfully " \
-                   f"changed from {old_address.value} to {rec.address.value}"
+            return (
+                f"Address for contact '{rec.name.value}' has been successfully "
+                f"changed from {old_address.value} to {rec.address.value}"
+            )
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def change_name(self, *args) -> str:
         """
@@ -329,13 +351,16 @@ class Bot(BotBase):
             rec.name.value = new_name
             self.contacts.delete(name)
             self.contacts.add_record(rec)
-            return f"Name for contact '{name}' has been successfully" \
-                   f"changed from '{name}' to '{new_name}'"
+            return (
+                f"Name for contact '{name}' has been successfully"
+                f"changed from '{name}' to '{new_name}'"
+            )
         else:
-            raise ValueError(f"The contact with the name '{name}' doesn't exist in the "
-                             f"Address Book. Add it first, please.")
-    
-    
+            raise ValueError(
+                f"The contact with the name '{name}' doesn't exist in the "
+                f"Address Book. Add it first, please."
+            )
+
     @input_error
     def good_bye(self) -> str:
         """
@@ -343,8 +368,7 @@ class Bot(BotBase):
         :return: "Good bye!" string.
         """
         return "Good bye!"
-    
-    
+
     @input_error
     def show_days_to_birthday(self, *args) -> str:
         """
@@ -356,13 +380,15 @@ class Bot(BotBase):
         record = self.contacts.find(name)
         if record:
             days_to_birthday = record.days_to_birthday()
-            return f"Days to the next birthday for the contact '{record.name.value}' is " \
-                   f"{days_to_birthday} days"
+            return (
+                f"Days to the next birthday for the contact '{record.name.value}' is "
+                f"{days_to_birthday} days"
+            )
         else:
-            raise ValueError(f"Contact with a name '{name}' doesn't exist in the Address "
-                             f"Book")
-    
-    
+            raise ValueError(
+                f"Contact with a name '{name}' doesn't exist in the Address " f"Book"
+            )
+
     @input_error
     def upcoming_birthdays(self, *args) -> str:
         """
@@ -371,18 +397,23 @@ class Bot(BotBase):
         :return: String with upcoming birthdays.
         """
         days_threshold = int(args[0])
-        upcoming_birthdays = self.contacts.get_self.contacts_upcoming_birthdays(days_threshold)
-    
+        upcoming_birthdays = self.contacts.get_self.contacts_upcoming_birthdays(
+            days_threshold
+        )
+
         result_str = FormatStr.get_formatted_headers_birthdays()
         for contact in upcoming_birthdays:
             result_str += "{:<10} | {:<20} | {:<70} |\n".format(
-                contact['name'], contact['info']['birthday'],
-                contact['days_to_birthday'])
-    
-        result_str += "--------------------------+++-----------------------------------\n"
+                contact["name"],
+                contact["info"]["birthday"],
+                contact["days_to_birthday"],
+            )
+
+        result_str += (
+            "--------------------------+++-----------------------------------\n"
+        )
         return result_str
-    
-    
+
     @input_error
     def unknown(self) -> str:
         """
@@ -390,8 +421,7 @@ class Bot(BotBase):
         :return: String with the explanation that was typed incorrect command.
         """
         return "Unknown command. Try again."
-    
-    
+
     def help_command(self) -> str:
         """
         Method that returns instructions for the bot commands.
@@ -448,8 +478,7 @@ class Bot(BotBase):
                Purpose of the bot to create, modify and save self.contacts, notes, tags, \n
                sort files. The data is not lost after the exiting from the bot.\n
                """
-    
-    
+
     COMMANDS = {
         "help": help_command,
         "hello": hello,
@@ -484,10 +513,12 @@ def main() -> None:
     """
     bot = Bot(data_save_tool=SaveAddressBookOnDisk(address="address_book.json"))
     while True:
-        cli_input = prompt(message="Type a command>>> ",
-                           completer=get_nested_completer(),
-                           bottom_toolbar="Run 'help' command for getting additional "
-                                          "information about bot commands")
+        cli_input = prompt(
+            message="Type a command>>> ",
+            completer=get_nested_completer(),
+            bottom_toolbar="Run 'help' command for getting additional "
+            "information about bot commands",
+        )
         func_name, func, func_args = bot.parse_command(cli_input)
         print(func(bot, *func_args))
         if func_name in ("good bye", "close", "exit"):

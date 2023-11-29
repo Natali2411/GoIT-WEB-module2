@@ -1,6 +1,6 @@
 from typing import Dict
 
-from bot_helper.field import Field
+from field import Field
 
 ADDRESS_KEY_LIST = ["country", "city", "street", "house", "apartment"]
 
@@ -30,8 +30,10 @@ class Address(Field):
             self.__value = self.__value.extend([None] * (5 - len(address)))
 
     def __str__(self) -> str:
-        return (f'country: {self.country}, city: {self.city}, street: {self.street}, '
-                f'house: {self.house}, apartment: {self.apartment}')
+        return (
+            f"country: {self.country}, city: {self.city}, street: {self.street}, "
+            f"house: {self.house}, apartment: {self.apartment}"
+        )
 
     def get_addr_dict(self) -> Dict[str, str]:
         """
@@ -43,5 +45,5 @@ class Address(Field):
             "city": self.city,
             "street": self.street,
             "house": self.house,
-            "apartment": self.apartment
+            "apartment": self.apartment,
         }

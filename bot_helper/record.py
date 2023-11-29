@@ -4,17 +4,18 @@ import json
 from datetime import datetime
 from typing import Tuple, Any
 
-from bot_helper.birthday import Birthday, DATE_FORMAT
-from bot_helper.name import Name
-from bot_helper.phone import Phone
-from bot_helper.address import Address
-from bot_helper.email_address import Email
+from birthday import Birthday, DATE_FORMAT
+from name import Name
+from phone import Phone
+from address import Address
+from email_address import Email
 
 
 class RecordAlreadyExistsException(Exception):
     """
     A record which was operating already exists.
     """
+
     pass
 
 
@@ -32,10 +33,12 @@ class Record:
         self.emails: list[Email] = []
 
     def __str__(self) -> str:
-        return f"Contact name: {self.name.value}, phones:" \
-               f" {'; '.join(p.value for p in self.phones)}, address:" \
-               f" {self.address}, emails:" \
-               f" {'; '.join(em.value for em in self.emails)}"
+        return (
+            f"Contact name: {self.name.value}, phones:"
+            f" {'; '.join(p.value for p in self.phones)}, address:"
+            f" {self.address}, emails:"
+            f" {'; '.join(em.value for em in self.emails)}"
+        )
 
     def __repr__(self) -> str:
         birthday: datetime = self.birthday.value
@@ -47,13 +50,12 @@ class Record:
 
         return json.dumps(
             {
-                self.name.value:
-                    {
-                        "phones": [phone_num.value for phone_num in self.phones],
-                        "birthday": birthday_str,
-                        "address": address,
-                        "emails": [email.value for email in self.emails]
-                    }
+                self.name.value: {
+                    "phones": [phone_num.value for phone_num in self.phones],
+                    "birthday": birthday_str,
+                    "address": address,
+                    "emails": [email.value for email in self.emails],
+                }
             }
         )
 
@@ -69,17 +71,22 @@ class Record:
             birth_day, birth_month = self.birthday.value.day, self.birthday.value.month
             next_birthday_year = today_year
 
-            if today_month > birth_month or (today_month == birth_month and today_day
-                                             > birth_day):
+            if today_month > birth_month or (
+                today_month == birth_month and today_day > birth_day
+            ):
                 next_birthday_year = today_year + 1
             time_diff = datetime(next_birthday_year, birth_month, birth_day) - today
             days_to_next_birthday = time_diff.days
             return days_to_next_birthday
         else:
-            raise ValueError("There is no information about the client birthday. Add "
-                             "it first and call this method again.")
+            raise ValueError(
+                "There is no information about the client birthday. Add "
+                "it first and call this method again."
+            )
 
-    def get_phone_by_number(self, phone_num: str) -> Tuple[Any, int] | Tuple[None, None]:
+    def get_phone_by_number(
+        self, phone_num: str
+    ) -> Tuple[Any, int] | Tuple[None, None]:
         """
         Method iterates through the list of phone objects and returns the object that
         has 'phone_num' as a phone value.
@@ -90,8 +97,10 @@ class Record:
             if phone.value == phone_num:
                 return phone, idx
         return None, None
- 
-    def get_email_by_number(self, email_val: str) -> Tuple[Any, int] | Tuple[None, None]:
+
+    def get_email_by_number(
+        self, email_val: str
+    ) -> Tuple[Any, int] | Tuple[None, None]:
         """
         Method iterates through the list of email objects and returns the object that
         has 'email_val' as an email value.
@@ -110,8 +119,10 @@ class Record:
         :return: Notification with the information about adding phone.
         """
         self.phones.append(Phone(phone=phone_num))
-        return f"Phone number '{phone_num}' was successfully added to the contact '" \
-               f"{self.name.value}'"
+        return (
+            f"Phone number '{phone_num}' was successfully added to the contact '"
+            f"{self.name.value}'"
+        )
 
     def edit_phone(self, old_phone: str, new_phone: str) -> None:
         """
@@ -127,8 +138,9 @@ class Record:
         else:
             raise ValueError(
                 f"Phone with the number '{old_phone}' was not found for the "
-                f"user '{self.name.value}'")
-  
+                f"user '{self.name.value}'"
+            )
+
     def edit_email(self, old_email: str, new_email: str) -> None:
         """
         Method founds the email number in a list of other client's emails and edits it if the number was found.
@@ -141,7 +153,8 @@ class Record:
             self.emails[idx].value = new_email
         else:
             raise ValueError(
-                f"Email '{old_email}' was not found for the user '{self.name.value}'")
+                f"Email '{old_email}' was not found for the user '{self.name.value}'"
+            )
 
     def remove_phone(self, phone_num: str) -> None:
         """
@@ -169,8 +182,10 @@ class Record:
         :return: Notification with the information about adding birthday.
         """
         self.birthday = Birthday(birthday=birthday)
-        return f"Birthday '{birthday}' was successfully added to the birthday '" \
-               f"{self.name.value}'"
+        return (
+            f"Birthday '{birthday}' was successfully added to the birthday '"
+            f"{self.name.value}'"
+        )
 
     def add_address(self, address: list) -> str:
         """
@@ -179,8 +194,10 @@ class Record:
         :return: Notification with the information about adding address.
         """
         self.address = Address(address)
-        return f"Address '{address}' was successfully added to the address '" \
-               f"{self.name.value}'"
+        return (
+            f"Address '{address}' was successfully added to the address '"
+            f"{self.name.value}'"
+        )
 
     def add_email(self, email: str) -> str:
         """
@@ -189,5 +206,7 @@ class Record:
         :return: Notification with the information about adding email.
         """
         self.emails.append(Email(email))
-        return f"Email '{email}' was successfully added to the contact '" \
-               f"{self.name.value}'"
+        return (
+            f"Email '{email}' was successfully added to the contact '"
+            f"{self.name.value}'"
+        )
