@@ -487,7 +487,7 @@ class Bot(BotBase):
         "change phone": change_phone,
         "change birthday": update_birthday,
         "phone": find_contact_phone,
-        "show all self.contacts": show_all,
+        "show all contacts": show_all,
         "good bye": good_bye,
         "close": good_bye,
         "exit": good_bye,
